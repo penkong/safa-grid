@@ -1,0 +1,12 @@
+{
+    "name": "safa-grid",
+    "description": "npm package for add reusable layer over grid for Safa company.",
+    "author": {
+        "name": "Nazemi",
+        "email": "nazemi.works@gmail.com",
+        "github": "https://github.com/penkong"
+    },
+    "peerDependencies": {
+        "vue": ">=2.0.0"
+    }
+}

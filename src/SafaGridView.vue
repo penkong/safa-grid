@@ -4,12 +4,6 @@
       <button @click="onRemoveSelected()">حذف انتخاب شده</button>
       <button @click="updateAndSort()">به روز رسانی</button>
       <button @click="addRow()">افزودن ردیف</button>
-      <!-- <button @click="onAddRow()">افزودن</button>
-      <button @click="getRowData()">Get Row Data</button>
-      <button @click="onInsertRowAt2()">Insert Row @ 2</button>
-      <button @click="updateItems()">Update First 5</button>
-      <button @click="clearData()">Clear Data</button>
-      <button @click="addItemsAtIndex()">Add Items @ 2</button>-->
     </div>
     <ag-grid-vue
       class="ag-theme-balham"
@@ -29,13 +23,13 @@
 
 <script>
 //$ npm install --save ag-grid-community ag-grid-vue vue-property-decorator
-import { AgGridVue } from "ag-grid-vue";
+import { AgGridVue } from 'ag-grid-vue'
 
 // helper functions help us to maintain clean code.
-import { loadColumnsBaseOnProps } from "../helpers/loadColumnsBaseOnProps";
+import { loadColumnsBaseOnProps } from '../helpers/loadColumnsBaseOnProps'
 
 export default {
-  name: "SafaGridView",
+  name: 'SafaGridView',
   components: {
     AgGridVue
   },
@@ -53,9 +47,9 @@ export default {
     gridAlign: {
       type: String,
       required: true,
-      defualt: "righted",
+      defualt: 'righted',
       validator: function(value) {
-        return ["righted", "lefted"].indexOf(value) !== -1;
+        return ['righted', 'lefted'].indexOf(value) !== -1
       }
     }
   },
@@ -75,108 +69,107 @@ export default {
       rowClassRules: null,
       columnDefs: null,
       rowData: null
-    };
+    }
   },
   beforeMount() {
-    this.gridOptions = {};
-    this.rowClassRules = {};
+    this.gridOptions = {}
+    this.rowClassRules = {}
     this.gridOptions.getRowNodeId = function(data) {
-      return data.id;
-    };
+      return data.id
+    }
     this.gridOptions.defaultColDef = {
       sortable: true,
       resizable: true,
       filter: true,
-      sort: "asc",
+      sort: 'asc',
       rowStyle: {},
       editable: true,
       rowCount: null,
       sideBar: false,
       showForm: false
-    };
-    this.$set(this, "defaultColDef", this.gridOptions.defaultColDef);
+    }
+    this.$set(this, 'defaultColDef', this.gridOptions.defaultColDef)
   },
   mounted() {
-    this.gridApi = this.gridOptions.api;
-    this.gridColumnApi = this.gridOptions.columnApi;
+    this.gridApi = this.gridOptions.api
+    this.gridColumnApi = this.gridOptions.columnApi
   },
   computed: {
     onLoadAlign() {
-      return this.gridAlign;
+      return this.gridAlign
     },
     onLoadColumns() {
       return this.$set(
         this,
-        "columnDefs",
+        'columnDefs',
         loadColumnsBaseOnProps(this.definedCols)
-      );
+      )
     },
     onLoadRows() {
-      return this.$set(this, "rowData", this.definedrows);
+      return this.$set(this, 'rowData', this.definedrows)
     }
   },
   watch: {
-    columnDefs: "onLoadColumns",
-    rowData: "onLoadRows"
+    columnDefs: 'onLoadColumns',
+    rowData: 'onLoadRows'
   },
   methods: {
     onRemoveSelected() {
-      let selectedData = this.gridApi.getSelectedRows();
-      let res = this.gridApi.updateRowData({ remove: selectedData });
+      let selectedData = this.gridApi.getSelectedRows()
+      let res = this.gridApi.updateRowData({ remove: selectedData })
     },
     updateAndSort() {
-      this.gridApi.refreshClientSideRowModel("sort");
+      this.gridApi.refreshClientSideRowModel('sort')
     },
     createNewRowData() {
       let newData = {
-        EumManagerConfirmLicence: "پر شود",
-        UserName: "پر شود",
-        ConfirmationDate: "00/00/99",
-        ConfirmationTime: "12:00",
-        CI_ResourceManagerConfirm: "مدیریت",
-        CI_ResourceManagerConfirmDetails: " جزمیات",
-        Comments: "خالی"
-      };
-      return newData;
+        EumManagerConfirmLicence: 'پر شود',
+        UserName: 'پر شود',
+        ConfirmationDate: '00/00/99',
+        ConfirmationTime: '12:00',
+        CI_ResourceManagerConfirm: 'مدیریت',
+        CI_ResourceManagerConfirmDetails: ' جزمیات',
+        Comments: 'خالی'
+      }
+      return newData
     },
     addRow() {
-      let newItem = this.createNewRowData();
+      let newItem = this.createNewRowData()
       let res = this.gridApi.updateRowData({
         add: [newItem],
         addIndex: 0
-      });
+      })
     },
     onGridReady(params) {
-      params.api.sizeColumnsToFit();
+      params.api.sizeColumnsToFit()
     },
     updateFilter() {
-      this.gridApi.refreshClientSideRowModel("filter");
+      this.gridApi.refreshClientSideRowModel('filter')
     },
     getRowData() {
-      var rowData = [];
+      var rowData = []
       this.gridApi.forEachNode(function(node) {
-        rowData.push(node.data);
-      });
-      console.log("Row Data:");
-      console.log(rowData);
+        rowData.push(node.data)
+      })
+      console.log('Row Data:')
+      console.log(rowData)
     }
   }
-};
+}
 </script>
 
 
 <style lang="scss">
-// @import url("https://fonts.googleapis.com/css?family=Tajawal&display=swap");
-@import url("http://cdn.font-store.ir/ganjnameh.css");
-@import "../../node_modules/ag-grid-community/src/styles/ag-grid.scss";
-@import "../../node_modules/ag-grid-community/src/styles/ag-theme-balham/sass/ag-theme-balham.scss";
+@import url('http://cdn.font-store.ir/ganjnameh.css');
+@import '../../node_modules/ag-grid-community/src/styles/ag-grid.scss';
+@import '../../node_modules/ag-grid-community/src/styles/ag-theme-balham/sass/ag-theme-balham.scss';
 .safa-grid {
   .button-row {
     display: flex;
     justify-content: center;
     align-items: center;
     button {
-      font-family: "ganjnameh", sans-serif;
+      font-family: 'ganjnameh', sans-serif;
       cursor: pointer;
       margin: 1rem 0 0.4rem 2rem;
       border: none;

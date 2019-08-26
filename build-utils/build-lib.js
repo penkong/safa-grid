@@ -23,140 +23,139 @@ fs.emptyDirSync(getPath('../packages'))
 // Build the main lib, with all components packaged into a plugin
 console.info('🏗 Building main library')
 execSync(
-  `${vueCliServicePath} build src/index.js --target lib --name index --dest dist/`
-)
-// Rename the CommonJS build so that it can be imported with
-// ${libConfig}/dist
+        `${vueCliServicePath} build src/index.js --target lib --name index --dest dist/`
+    )
+    // Rename the CommonJS build so that it can be imported with
+    // ${libConfig}/dist
 renameIndex()
 
 // For each component in the src directory...
 for (const componentName of componentNames) {
-  // Build the component individually
-  console.info(`🏗 Building ${componentName}`)
-  execSync(
-    `${vueCliServicePath} build src/${componentName}.vue --target lib --name index --dest dist/${componentName}/`
-  )
+    // Build the component individually
+    console.info(`🏗 Building ${componentName}`)
+    execSync(
+        `${vueCliServicePath} build src/${componentName}.vue --target lib --name index --dest dist/${componentName}/`
+    )
 
-  // Rename the CommonJS build so that it can be imported with
-  // ${libConfig}/dist/ComponentName
-  renameIndex(componentName)
+    // Rename the CommonJS build so that it can be imported with
+    // ${libConfig}/dist/ComponentName
+    renameIndex(componentName)
 }
 
 if (process.env.VUE_APP_E2E) {
-  const packagesDir = getPath('../packages')
-  fs.copySync(packagesDir, getPath('../tests/e2e/fixtures/public/packages'))
-  fs.readdirSync(packagesDir).forEach(packageDirName => {
-    fs.copySync(
-      path.resolve(packagesDir, packageDirName),
-      getPath(`../node_modules/${packageDirName}`)
-    )
-  })
+    const packagesDir = getPath('../packages')
+    fs.copySync(packagesDir, getPath('../tests/e2e/fixtures/public/packages'))
+    fs.readdirSync(packagesDir).forEach(packageDirName => {
+        fs.copySync(
+            path.resolve(packagesDir, packageDirName),
+            getPath(`../node_modules/${packageDirName}`)
+        )
+    })
 }
 
 function renameIndex(componentName) {
-  const builds = [
-    {
-      type: 'common',
-      dest: 'cjs'
-    },
-    {
-      type: 'umd'
-    },
-    {
-      type: 'umd.min'
-    }
-  ]
+    const builds = [{
+            type: 'common',
+            dest: 'cjs'
+        },
+        {
+            type: 'umd'
+        },
+        {
+            type: 'umd.min'
+        }
+    ]
 
-  const packageName = _.compact([
-    libConfig.name,
-    _.kebabCase(componentName)
-  ]).join('.')
-  const destPackageFolder = path.resolve(
-    __dirname,
-    `../packages/${packageName}`
-  )
+    const packageName = _.compact([
+        libConfig.name,
+        _.kebabCase(componentName)
+    ]).join('.')
+    const destPackageFolder = path.resolve(
+        __dirname,
+        `../packages/${packageName}`
+    )
 
-  for (const build of builds) {
-    const oldIndexPath = path.resolve(
-      __dirname,
-      `../dist/${componentName || ''}/index.${build.type}.js`
-    )
-    const [buildTypeBase, buildModifier] = build.type.split('.')
-    const destFolder = path.resolve(
-      destPackageFolder,
-      build.dest != null ? build.dest : buildTypeBase
-    )
-    const newIndexPath = path.resolve(
-      destFolder,
-      `index${buildModifier ? '.' + buildModifier : ''}.js`
-    )
-    if (!fs.existsSync(destPackageFolder)) {
-      fs.mkdirSync(destPackageFolder)
-    }
-    if (!fs.existsSync(destFolder)) {
-      fs.mkdirSync(destFolder)
-    }
-    const oldMapPath = oldIndexPath + '.map'
-    const newMapPath = newIndexPath + '.map'
+    for (const build of builds) {
+        const oldIndexPath = path.resolve(
+            __dirname,
+            `../dist/${componentName || ''}/index.${build.type}.js`
+        )
+        const [buildTypeBase, buildModifier] = build.type.split('.')
+        const destFolder = path.resolve(
+            destPackageFolder,
+            build.dest != null ? build.dest : buildTypeBase
+        )
+        const newIndexPath = path.resolve(
+            destFolder,
+            `index${buildModifier ? '.' + buildModifier : ''}.js`
+        )
+        if (!fs.existsSync(destPackageFolder)) {
+            fs.mkdirSync(destPackageFolder)
+        }
+        if (!fs.existsSync(destFolder)) {
+            fs.mkdirSync(destFolder)
+        }
+        const oldMapPath = oldIndexPath + '.map'
+        const newMapPath = newIndexPath + '.map'
 
-    fs.renameSync(oldIndexPath, newIndexPath)
-    fs.renameSync(oldMapPath, newMapPath)
+        fs.renameSync(oldIndexPath, newIndexPath)
+        fs.renameSync(oldMapPath, newMapPath)
+        fs.writeFileSync(
+            newIndexPath,
+            fs
+            .readFileSync(newIndexPath, { encoding: 'utf8' })
+            .replace(path.basename(oldMapPath), path.basename(newMapPath))
+        )
+    }
+
+    fs.copySync(getPath('../src'), path.resolve(destPackageFolder, 'src'), {
+        filter: filePath => {
+            return !/\.unit\.js$/.test(filePath)
+        }
+    })
     fs.writeFileSync(
-      newIndexPath,
-      fs
-        .readFileSync(newIndexPath, { encoding: 'utf8' })
-        .replace(path.basename(oldMapPath), path.basename(newMapPath))
-    )
-  }
-
-  fs.copySync(getPath('../src'), path.resolve(destPackageFolder, 'src'), {
-    filter: filePath => {
-      return !/\.unit\.js$/.test(filePath)
-    }
-  })
-  fs.writeFileSync(
-    path.resolve(destPackageFolder, 'index.js'),
-    `\
+        path.resolve(destPackageFolder, 'index.js'),
+        `\
 export * from './src${componentName ? '/' + componentName + '.vue' : ''}'
 `
-  )
+    )
 
-  let description = libConfig.description
-  let example
-  if (componentName) {
-    const srcFilePath = getPath(`../src/${componentName}.vue`)
-    const result = parseComponent({
-      source: fs.readFileSync(srcFilePath, { encoding: 'utf8' }),
-      filename: srcFilePath,
-      compiler: require('vue-template-compiler')
-    })
-    description = JSON.parse(
-      result.customBlocks.find(block => block.type === 'meta').content
-    ).description
-    example = result.customBlocks
-      .find(block => block.type === 'example')
-      .content.trim()
-  }
-  const packageConfig = {
-    name: packageName,
-    moduleName: componentName || _.upperFirst(_.camelCase(packageName)),
-    description,
-    example
-  }
-  console.info(`📝 Writing package.json for ${packageConfig.moduleName}`)
-  fs.writeFileSync(
-    path.resolve(destPackageFolder, 'package.json'),
-    generatePackageJson(packageConfig)
-  )
-  console.info(`🤓 Writing readme file for ${packageConfig.moduleName}`)
-  fs.writeFileSync(
-    path.resolve(destPackageFolder, 'README.md'),
-    generateReadme(packageConfig)
-  )
-  console.info(`☝️ Adding license for ${packageConfig.moduleName}`)
-  fs.writeFileSync(
-    path.resolve(destPackageFolder, 'LICENSE'),
-    `\
+    let description = libConfig.description
+    let example
+    if (componentName) {
+        const srcFilePath = getPath(`../src/${componentName}.vue`)
+        const result = parseComponent({
+            source: fs.readFileSync(srcFilePath, { encoding: 'utf8' }),
+            filename: srcFilePath,
+            compiler: require('vue-template-compiler')
+        })
+        description = JSON.parse(
+            result.customBlocks.find(block => block.type === 'meta').content
+        ).description
+        example = result.customBlocks
+            .find(block => block.type === 'example')
+            .content.trim()
+    }
+    const packageConfig = {
+        name: packageName,
+        moduleName: componentName || _.upperFirst(_.camelCase(packageName)),
+        description,
+        example
+    }
+    console.info(`📝 Writing package.json for ${packageConfig.moduleName}`)
+    fs.writeFileSync(
+        path.resolve(destPackageFolder, 'package.json'),
+        generatePackageJson(packageConfig)
+    )
+    console.info(`🤓 Writing readme file for ${packageConfig.moduleName}`)
+    fs.writeFileSync(
+        path.resolve(destPackageFolder, 'README.md'),
+        generateReadme(packageConfig)
+    )
+    console.info(`☝️ Adding license for ${packageConfig.moduleName}`)
+    fs.writeFileSync(
+        path.resolve(destPackageFolder, 'LICENSE'),
+        `\
 The MIT License (MIT)
 
 Copyright (c) 2018-present, ${libConfig.author.name}
@@ -179,57 +178,56 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 `
-  )
-
-  if (componentName) {
-    const componentPackageFolder = path.resolve(
-      __dirname,
-      `../packages/${libConfig.name}/${componentName}`
     )
-    fs.copySync(destPackageFolder, componentPackageFolder, {
-      filter: filePath => {
-        return !/(LICENSE|README\.md|src)$/.test(filePath)
-      }
-    })
-    fs.writeFileSync(
-      path.resolve(componentPackageFolder, 'index.js'),
-      `\
+
+    if (componentName) {
+        const componentPackageFolder = path.resolve(
+            __dirname,
+            `../packages/${libConfig.name}/${componentName}`
+        )
+        fs.copySync(destPackageFolder, componentPackageFolder, {
+            filter: filePath => {
+                return !/(LICENSE|README\.md|src)$/.test(filePath)
+            }
+        })
+        fs.writeFileSync(
+            path.resolve(componentPackageFolder, 'index.js'),
+            `\
 export * from '${path.join('../src', componentName || '')}'
 `
-    )
-  }
+        )
+    }
 }
 
 function generatePackageJson(package) {
-  const repoName = libConfig.author.github + '/' + libConfig.name
-  return JSON.stringify(
-    {
-      name: package.name,
-      description: package.description,
-      author: libConfig.author,
-      license: 'MIT',
-      homepage: `https://www.npmjs.com/package/${package.name}`,
-      repository: {
-        type: 'git',
-        url: `git+https://github.com/${repoName}.git`
-      },
-      bugs: {
-        url: `https://github.com/${repoName}/issues`
-      },
-      module: 'index.js',
-      main: 'cjs/index.js',
-      unpkg: 'umd/index.min.js',
-      jsdelivr: 'umd/index.min.js',
-      peerDependencies: libConfig.peerDependencies
-    },
-    null,
-    2
-  )
+    const repoName = libConfig.author.github + '/' + libConfig.name
+    return JSON.stringify({
+            name: package.name,
+            description: package.description,
+            author: libConfig.author,
+            license: 'MIT',
+            homepage: `https://www.npmjs.com/package/${package.name}`,
+            repository: {
+                type: 'git',
+                url: `git+https://github.com/${repoName}.git`
+            },
+            bugs: {
+                url: `https://github.com/${repoName}/issues`
+            },
+            module: 'index.js',
+            main: 'cjs/index.js',
+            unpkg: 'umd/index.min.js',
+            jsdelivr: 'umd/index.min.js',
+            peerDependencies: libConfig.peerDependencies
+        },
+        null,
+        2
+    )
 }
 
 function generateReadme(package) {
-  if (!package.example)
-    return `
+    if (!package.example)
+        return `
 # ${package.name}
 
 > ${package.description}
@@ -302,7 +300,7 @@ import HelloB from 'hello-vue-components/HelloB'
 \`\`\`
 `
 
-  return `\
+    return `\
 # ${package.name}
 
 > ${package.description}
@@ -362,5 +360,5 @@ ${package.example}
 }
 
 function getPath(...args) {
-  return path.resolve(__dirname, ...args)
+    return path.resolve(__dirname, ...args)
 }
