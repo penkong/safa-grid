@@ -1,0 +1,37 @@
+{
+    "name": "safa-grid",
+    "version": "0.1.0",
+    "description": "npm package for add reusable layer over grid for Safa company.",
+    "main": "./dist/index.js",
+    "engines": {
+        "node": ">= 7.0"
+    },
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "files": [
+        "dist/*",
+        "doc",
+        "*.json",
+        "*.js"
+    ],
+    "keywords": [
+        "safa",
+        "framework",
+        "vuejs",
+        "vue",
+        "js",
+        "desktop",
+        "spa"
+    ],
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/penkong/safa-grid.git"
+    },
+    "author": "mk-nazemi <nazemi.works@gmail.com> (safarayaneh.com)",
+    "bugs": {
+        "url": "https://github.com/penkong/safa-grid/issues"
+    },
+    "homepage": "https://github.com/penkong/safa-grid#readme"
+}
