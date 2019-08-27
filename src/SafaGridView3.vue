@@ -1,3 +1,26 @@
+<template>
+  <div class="safa-grid" :class="onLoadAlign" style="height: 100vh;">
+    <div class="button-row" style="margin-bottom: 5px;">
+      <button @click="onRemoveSelected()">حذف انتخاب شده</button>
+      <button @click="updateAndSort()">به روز رسانی</button>
+      <button @click="addRow()">افزودن ردیف</button>
+    </div>
+    <ag-grid-vue
+      class="ag-theme-balham"
+      style=" height: calc(100% - 64px);"
+      rowSelection="multiple"
+      deltaRowDataMode="true"
+      :gridOptions="gridOptions"
+      :columnDefs="columnDefs"
+      :rowData="rowData"
+      :rowAnimation="true"
+      :rowClassRules="rowClassRules"
+      :getRowNodeId="getRowNodeId"
+      @grid-ready="onGridReady"
+    ></ag-grid-vue>
+  </div>
+</template>
+
 <script>
 //$ npm install --save ag-grid-community ag-grid-vue vue-property-decorator
 import { AgGridVue } from "ag-grid-vue";
@@ -10,26 +33,6 @@ export default {
   components: {
     AgGridVue
   },
-  template: `<div class="safa-grid" :class="onLoadAlign" style="height: 100vh;">
-                <div class="button-row" style="margin-bottom: 5px;">
-                  <button @click="onRemoveSelected()">حذف انتخاب شده</button>
-                  <button @click="updateAndSort()">به روز رسانی</button>
-                  <button @click="addRow()">افزودن ردیف</button>
-                </div>
-                <ag-grid-vue
-                  class="ag-theme-balham"
-                  style=" height: calc(100% - 64px);"
-                  rowSelection="multiple"
-                  deltaRowDataMode="true"
-                  :gridOptions="gridOptions"
-                  :columnDefs="columnDefs"
-                  :rowData="rowData"
-                  :rowAnimation="true"
-                  :rowClassRules="rowClassRules"
-                  :getRowNodeId="getRowNodeId"
-                  @grid-ready="onGridReady"
-                ></ag-grid-vue>
-              </div>`,
   props: {
     definedCols: {
       type: Array,
@@ -153,6 +156,12 @@ export default {
     }
   }
 };
+// export default {
+//     install(Vue, options) {
+//         Vue.component("safa-grid-view", SafaGridView);
+//         Vue.component("sth", Sth);
+//     }
+// };
 </script>
 
 
@@ -192,3 +201,4 @@ export default {
   background-color: rgb(78, 78, 201);
 }
 </style>
+
