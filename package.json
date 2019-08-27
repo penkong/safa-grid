@@ -15,10 +15,10 @@
         "not ie <= 8"
     ],
     "license": "MIT",
-    "main": "./index.esm.js",
+    "main": "./dist/index.cjs.js",
     "scripts": {
         "dev": "vue serve SafaGridView.vue",
-        "build": "bili --format esm-min --name index --plugin vue --vue.css false"
+        "build": "bili --name index --plugin vue --vue.css false"
     },
     "files": [
         "dist/*",
